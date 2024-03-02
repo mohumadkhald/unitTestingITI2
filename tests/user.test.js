@@ -32,7 +32,7 @@ test('User creation should succeed', async (t) => {
         body: {
             "firstName": "menna",
             "lastName": "hamdy",
-            "age": 30,
+            "age": 2,
             "job": "developer",
             "email": "menna.hamdy@gmail.com",
             "password": "12345678Aa" // Plain text password
@@ -40,7 +40,7 @@ test('User creation should succeed', async (t) => {
     };
     const expectedResult = {
         fullName,
-        age: 30,
+        age: 2,
         job: "developer",
         email: 'menna.hamdy@gmail.com',
         password: hashedPassword // Using hashed password instead of plain text password
