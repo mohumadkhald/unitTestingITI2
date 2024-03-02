@@ -1,0 +1,62 @@
+const startDB = require('../helpers/DB');
+const it = require('ava').default;
+const chai = require('chai');
+const expect = chai.expect;
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const { addUser } = require('../controllers/user');
+const sinon = require('sinon');
+const utils = require('../helpers/utils');
+const User = require('../models/user');
+
+it.before(async (t) => {
+    t.context.mongod = await MongoMemoryServer.create();
+    process.env.MONGOURI = t.context.mongod.getUri('itiUnitTesting');
+    await startDB(); // Ensure startDB is defined correctly
+});
+
+it.after.always(async (t) => {
+    if (t.context.mongod) {
+        await t.context.mongod.stop({ doCleanUp: true });
+    }
+});
+
+it('should create one user', async (t) => {
+    // Setup
+    const fullName = 'menna hamdy';
+    const request = {
+        body: {
+            "firstName": "menna",
+            "lastName": "hamdy",
+            "age": 30,
+            "job": "developer",
+            "email": 'menna.hamdy@gmail.com',
+            "password": '12345678Aa' // Plain text password
+        }
+    };
+    const expectedResult = {
+        fullName,
+        age: 30,
+        job: "developer",
+        email: 'menna.hamdy@gmail.com',
+        password: '12345678Aa' // Plain text password
+    };
+
+    // Exercise
+    const stub1 = sinon.stub(utils, 'getFullName').callsFake((fname, lname) => fullName);
+
+    // Verify
+    await t.notThrowsAsync(async () => {
+        const actualResult = await addUser(request);
+        // Assert individual properties
+        expect(actualResult.fullName).to.equal(expectedResult.fullName);
+        expect(actualResult.age).to.equal(expectedResult.age);
+        expect(actualResult.job).to.equal(expectedResult.job);
+        expect(actualResult.email).to.equal(expectedResult.email);
+        // Validate password (plain text comparison)
+        expect(actualResult.password).to.equal(expectedResult.password);
+    });
+    
+    // Teardown (if necessary)
+    await User.deleteMany({ "email": request.body.email });
+    stub1.restore();
+});

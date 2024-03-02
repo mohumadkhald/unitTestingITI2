@@ -1,0 +1,32 @@
+{
+  "name": "unittestingiti",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon .",
+    "test": "ava tests/"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/formbody": "^7.4.0",
+    "@fastify/multipart": "^8.1.0",
+    "@nestjs/common": "^10.3.3",
+    "ava": "^6.1.2",
+    "bcrypt": "^5.1.1",
+    "chai": "^4.3.7",
+    "fastify": "^4.26.1",
+    "fastify-multer": "^2.0.3",
+    "joi": "^17.12.2",
+    "mongodb-memory-server": "^9.1.6",
+    "mongoose": "^8.2.0",
+    "multer": "^1.4.5-lts.1",
+    "nest-file-fastify": "^3.0.7",
+    "nodemon": "^3.1.0",
+    "sinon": "^17.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

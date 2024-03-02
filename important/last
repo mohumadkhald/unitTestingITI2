@@ -1,0 +1,98 @@
+const test = require('ava').default;
+const sinon = require('sinon');
+const chai = require('chai');
+const expect = chai.expect;
+const startDB = require('../helpers/DB');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const { addUser, getUsers } = require('../controllers/user');
+const utils = require('../helpers/utils');
+const User = require('../models/user');
+
+test.before(async (t) => {
+    t.context.mongod = await MongoMemoryServer.create();
+    process.env.MONGOURI = t.context.mongod.getUri('itiUnitTesting');
+    await startDB();
+});
+
+test.after.always(async (t) => {
+    if (t.context.mongod) {
+        await t.context.mongod.stop({ doCleanUp: true });
+    }
+});
+
+test.serial('User creation should succeed', async (t) => {
+    // Setup
+    const fullName = 'menna hamdy';
+    const request = {
+        body: {
+            "firstName": "menna",
+            "lastName": "hamdy",
+            "age": 30,
+            "job": "developer",
+            "email": 'menna.hamdy@gmail.com',
+            "password": '12345678Aa' // Plain text password
+        }
+    };
+    const expectedResult = {
+        fullName,
+        age: 30,
+        job: "developer",
+        email: 'menna.hamdy@gmail.com',
+        password: request.body.password // Plain text password
+    };
+
+    // Exercise
+    const stub1 = sinon.stub(utils, 'getFullName').callsFake((fname, lname) => fullName);
+    t.teardown(() => stub1.restore());
+
+    const actualResult = await addUser(request);
+    
+    // Verify
+    expect(actualResult.fullName).to.equal(expectedResult.fullName);
+    expect(actualResult.age).to.equal(expectedResult.age);
+    expect(actualResult.job).to.equal(expectedResult.job);
+    expect(actualResult.email).to.equal(expectedResult.email);
+    expect(actualResult.password).to.equal(expectedResult.password); // Validate password (plain text comparison)
+});
+
+
+
+test.serial('Retrieving all users should succeed', async (t) => {
+    // Setup
+    const mockUsers = [
+        {
+            fullName: 'John Doe',
+            age: 30,
+            job: 'Engineer',
+            email: 'john.doe@example.com',
+            password: '12345678Aa'
+        },
+        {
+            fullName: 'Jane Smith',
+            age: 35,
+            job: 'Designer',
+            email: 'jane.smith@example.com',
+            password: '12345678Aa'
+        }
+    ];
+    const findStub = sinon.stub(User, 'find').resolves(mockUsers);
+    t.teardown(() => findStub.restore());
+
+    // Exercise
+    const result = await getUsers();
+
+    // Verify
+    t.deepEqual(result, mockUsers);
+});
+
+test.serial('Error handling when getting users should work', async (t) => {
+    // Setup
+    const errorMessage = 'Error fetching users';
+    const error = new Error(errorMessage);
+    const findStub = sinon.stub(User, 'find').rejects(error);
+    t.teardown(() => findStub.restore());
+
+    // Exercise and Verify
+    const errorResult = await t.throwsAsync(getUsers());
+    t.is(errorResult.message, errorMessage);
+});
