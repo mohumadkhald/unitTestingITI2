@@ -32,7 +32,7 @@ test('User creation should succeed', async (t) => {
         body: {
             "firstName": "menna",
             "lastName": "hamdy",
-            "age": 2,
+            "age": 20,
             "job": "developer",
             "email": "menna.hamdy@gmail.com",
             "password": "12345678Aa" // Plain text password
@@ -40,7 +40,7 @@ test('User creation should succeed', async (t) => {
     };
     const expectedResult = {
         fullName,
-        age: 2,
+        age: 20,
         job: "developer",
         email: 'menna.hamdy@gmail.com',
         password: hashedPassword // Using hashed password instead of plain text password
@@ -159,8 +159,6 @@ test.serial('should return 404 if user is not found', async (t) => {
 
 
 test.serial('should update user successfully', async (t) => {
-    // Stub the validate method of UserValidator to resolve
-    const validateStub = sinon.stub(UserValidator, 'validate').resolves();
 
     // Stub the getFullName method of utils to return a fixed value
     const getFullNameStub = sinon.stub(utils, 'getFullName').returns('John Doe');
@@ -176,12 +174,12 @@ test.serial('should update user successfully', async (t) => {
     });
 
     // Mock request and reply objects
-    const request = { params: { id: 'user_id' }, body: { firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com', password: 'newpassword' } };
+    const request = { params: { id: 'user_id' }, body: { firstName: 'john', lastName: 'doe', email: 'john.doe@example.com', password: '12345678Aa' } };
     const reply = { code: sinon.stub().returnsThis() };
-
     // Call the updateUser function
     const result = await updateUser(request, reply);
-
+    // Stub the validate method of UserValidator to resolve
+    const validateStub = sinon.stub(UserValidator, 'validate').resolves();
     // Assertions
     t.deepEqual(result, updatedUser);
     t.false(reply.code.calledWith(404)); // Ensure reply.code(404) was not called
@@ -193,13 +191,12 @@ test.serial('should update user successfully', async (t) => {
 });
 
 test.serial('should return 404 if user to update is not found', async (t) => {
-    // Stub the findByIdAndUpdate method of the User model to resolve with null
-    const findByIdAndUpdateStub = sinon.stub(User, 'findByIdAndUpdate').resolves(null);
 
     // Mock request and reply objects
     const request = { params: { id: 'user_id' }, body: { firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com', password: '12345678Aa' } };
     const reply = { code: sinon.stub().returnsThis() };
-
+    // Stub the findByIdAndUpdate method of the User model to resolve with null
+    const findByIdAndUpdateStub = sinon.stub(User, 'findByIdAndUpdate').resolves(null);
     // Call the updateUser function
     try {
         await updateUser(request, reply);
